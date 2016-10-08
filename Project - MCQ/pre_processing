@@ -1,0 +1,39 @@
+'''
+pre-processing.py
+Author: Adam Swart
+Pre-processing to normalise MCQ sheets
+'''
+
+import cv2
+import os
+import numpy as np
+import argparse as ap
+import cvutils
+import math
+from matplotlib import pyplot as plt
+
+def findCorners(img):
+#finds the corners in an image
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    template = cv2.imread('images/templates/cnr_template.ppm', 0)
+    w, h = template.shape[::-1]
+
+    corners = []
+
+    res = cv2.matchTemplate(img_gray,template,cv2.TM_CCOEFF_NORMED)
+    threshold = 0.8
+    loc = np.where(res >= threshold)
+    for pt in zip(*loc[::-1]):
+        cv2.rectangle(img, pt, (pt[0] + w, pt[1] + h), (0,0,255), 2)
+        corners.append((int((pt[0] + w)/2), int((pt[1] + h)/2)))
+
+    cv2.imwrite('res.ppm',img)
+    corners = sorted(corners, key=lambda x: x[1])
+    flag = 0
+    if len(corners) != 4:
+        flag = 1
+    return corners, flag
+
+findCorners('images/ppm/mcq2.ppm')
+print corners
+print flag
